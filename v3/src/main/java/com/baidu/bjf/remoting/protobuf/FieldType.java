@@ -47,6 +47,8 @@ public enum FieldType {
     OBJECT  ("Object", "object"       , "WIRETYPE_LENGTH_DELIMITED"    ,    ""    ,  WireFormat.FieldType.MESSAGE ,null ),
     ENUM ("Enum", "enum"       , "WIRETYPE_VARINT"    ,    ".ordinal()"    ,  WireFormat.FieldType.ENUM , null ),
     MAP ("Map", "map"       , "WIRETYPE_VARINT"    ,    ""    ,  WireFormat.FieldType.MESSAGE , null ),
+    BIG_DECIMAL("BigDecimal", "string", "WIRETYPE_LENGTH_DELIMITED", ".toString()", WireFormat.FieldType.STRING, "0"),
+    DATE("Date", "int64", "WIRETYPE_VARINT", ".getTime()", WireFormat.FieldType.INT64, "0L"),
     DEFAULT("", ""       , ""    ,    ""    ,  WireFormat.FieldType.MESSAGE , null );
     
     /**

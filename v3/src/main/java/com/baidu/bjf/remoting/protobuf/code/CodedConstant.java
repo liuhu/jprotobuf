@@ -18,12 +18,8 @@ package com.baidu.bjf.remoting.protobuf.code;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.math.BigDecimal;
+import java.util.*;
 
 import com.baidu.bjf.remoting.protobuf.Codec;
 import com.baidu.bjf.remoting.protobuf.EnumHandler;
@@ -587,7 +583,11 @@ public class CodedConstant {
             size = CodedOutputStream.computeInt32SizeNoTag(Integer.valueOf(o.toString()));
         } else if (type == FieldType.FIXED64 || type == FieldType.INT64 || type == FieldType.SFIXED64
                 || type == FieldType.SINT64 || type == FieldType.UINT64) {
-            size = CodedOutputStream.computeInt64SizeNoTag(Long.valueOf(o.toString()));
+            if (o instanceof Date) {
+                size = CodedOutputStream.computeInt64SizeNoTag(Long.valueOf(((Date) o).getTime()));
+            } else {
+                size = CodedOutputStream.computeInt64SizeNoTag(Long.valueOf(o.toString()));
+            }
         } else if (type == FieldType.FLOAT) {
             size = CodedOutputStream.computeFloatSizeNoTag(Float.valueOf(o.toString()));
         } else if (type == FieldType.ENUM) {
@@ -808,10 +808,16 @@ public class CodedConstant {
                 out.writeInt32NoTag((Integer) o);
             }
         } else if (type == FieldType.INT64) {
-            if (withTag) {
-                out.writeInt64(order, (Long) o);
+            Long value = null;
+            if (o instanceof Date) {
+                value =  ((Date) o).getTime();
             } else {
-                out.writeInt64NoTag((Long) o);
+                value = (Long) o;
+            }
+            if (withTag) {
+                out.writeInt64(order, value);
+            } else {
+                out.writeInt64NoTag(value);
             }
         } else if (type == FieldType.SFIXED32) {
             if (withTag) {
@@ -1088,6 +1094,34 @@ public class CodedConstant {
         } catch (IllegalArgumentException e) {
             return null;
         }
+    }
+
+    /**
+     * 获取BigDecimal
+     * @param value
+     * @return
+     */
+    public static BigDecimal getBigDecimal(String value) {
+        if (StringUtils.isEmpty(value)) {
+            return null;
+        }
+        try {
+            return new BigDecimal(value);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    /**
+     * 获取 Date
+     * @param value
+     * @return
+     */
+    public static Date getDate(Long value) {
+        if (null == value) {
+            return null;
+        }
+        return new Date(value);
     }
 
     /**

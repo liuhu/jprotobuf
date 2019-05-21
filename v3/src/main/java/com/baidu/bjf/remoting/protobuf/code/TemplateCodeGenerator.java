@@ -232,6 +232,10 @@ public class TemplateCodeGenerator extends AbstractCodeGenerator {
                 }
                 express = "CodedConstant.getEnumValue(" + clsName + ".class, CodedConstant.getEnumName(" + clsName
                         + ".values()," + "input.read" + t + "()))";
+            } else if (field.getFieldType() == FieldType.BIG_DECIMAL) {
+                express = "CodedConstant.getBigDecimal(" + "input.read" + t + "()" + ")";
+            } else if (field.getFieldType() == FieldType.DATE) {
+                express = "CodedConstant.getDate(" + "input.read" + t + "()" + ")";
             } else {
                 express = "input.read" + t + "()";
             }
@@ -397,6 +401,7 @@ public class TemplateCodeGenerator extends AbstractCodeGenerator {
     private void genImportCode() {
         Set<String> imports = new HashSet<String>();
         imports.add("java.util.*");
+        imports.add("java.math.BigDecimal");
         imports.add("java.io.IOException");
         imports.add("java.lang.reflect.*");
         imports.add("com.baidu.bjf.remoting.protobuf.code.*");
