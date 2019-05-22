@@ -76,6 +76,45 @@ public class BigDecimalTypeClassTest {
     }
 
     /**
+     * 内部类
+     */
+    public static class InternalDecimalPOJOClass {
+
+        @Protobuf(fieldType = FieldType.OBJECT, order = 1, required = true)
+        private SingleBigDecimalPOJOClass singleBigDecimalPOJOClass;
+
+        @Protobuf(fieldType = FieldType.OBJECT, order = 2, required = true)
+        private ListBigDecimalPOJOClass listBigDecimalPOJOClass;
+
+        @Protobuf(fieldType = FieldType.OBJECT, order = 3, required = true)
+        private MapDecimalPOJOClass mapDecimalPOJOClass;
+
+        public SingleBigDecimalPOJOClass getSingleBigDecimalPOJOClass() {
+            return singleBigDecimalPOJOClass;
+        }
+
+        public void setSingleBigDecimalPOJOClass(SingleBigDecimalPOJOClass singleBigDecimalPOJOClass) {
+            this.singleBigDecimalPOJOClass = singleBigDecimalPOJOClass;
+        }
+
+        public ListBigDecimalPOJOClass getListBigDecimalPOJOClass() {
+            return listBigDecimalPOJOClass;
+        }
+
+        public void setListBigDecimalPOJOClass(ListBigDecimalPOJOClass listBigDecimalPOJOClass) {
+            this.listBigDecimalPOJOClass = listBigDecimalPOJOClass;
+        }
+
+        public MapDecimalPOJOClass getMapDecimalPOJOClass() {
+            return mapDecimalPOJOClass;
+        }
+
+        public void setMapDecimalPOJOClass(MapDecimalPOJOClass mapDecimalPOJOClass) {
+            this.mapDecimalPOJOClass = mapDecimalPOJOClass;
+        }
+    }
+
+    /**
      * Test encode decode.
      */
     @Test
@@ -151,7 +190,7 @@ public class BigDecimalTypeClassTest {
         pojo.setDecimalMap(decimalMap);
 
 
-        Codec<MapDecimalPOJOClass> codec = ProtobufProxy.create(MapDecimalPOJOClass.class, true);
+        Codec<MapDecimalPOJOClass> codec = ProtobufProxy.create(MapDecimalPOJOClass.class, false);
         try {
             byte[] b = codec.encode(pojo);
             MapDecimalPOJOClass newPojo = codec.decode(b);
@@ -167,4 +206,48 @@ public class BigDecimalTypeClassTest {
             e.printStackTrace();
         }
     }
+
+    @Test
+    public void testInternalEncodeDecode() {
+
+        BigDecimal num1 = new BigDecimal("123");
+        BigDecimal num2 = new BigDecimal("8733.37462938476239842634829346234");
+
+        SingleBigDecimalPOJOClass singleBigDecimalPOJOClass = new SingleBigDecimalPOJOClass();
+        singleBigDecimalPOJOClass.setNum(num1);
+
+        Map<Long, BigDecimal> decimalMap = new HashMap<>();
+        decimalMap.put(0L, num1);
+        decimalMap.put(1L, num2);
+        MapDecimalPOJOClass mapDecimalPOJOClass = new MapDecimalPOJOClass();
+        mapDecimalPOJOClass.setDecimalMap(decimalMap);
+
+        ListBigDecimalPOJOClass listBigDecimalPOJOClass = new ListBigDecimalPOJOClass();
+        listBigDecimalPOJOClass.setNums(Arrays.asList(num1, num2));
+
+
+        InternalDecimalPOJOClass internalDecimalPOJOClass = new InternalDecimalPOJOClass();
+        internalDecimalPOJOClass.setSingleBigDecimalPOJOClass(singleBigDecimalPOJOClass);
+        internalDecimalPOJOClass.setListBigDecimalPOJOClass(listBigDecimalPOJOClass);
+        internalDecimalPOJOClass.setMapDecimalPOJOClass(mapDecimalPOJOClass);
+
+        Codec<InternalDecimalPOJOClass> codec = ProtobufProxy.create(InternalDecimalPOJOClass.class, false);
+        try {
+            byte[] b = codec.encode(internalDecimalPOJOClass);
+            InternalDecimalPOJOClass newPojo = codec.decode(b);
+            System.out.println("Original value = " + singleBigDecimalPOJOClass.getNum() + ", Decode value = " + newPojo.getSingleBigDecimalPOJOClass().getNum());
+            Assert.assertEquals(singleBigDecimalPOJOClass.getNum(), newPojo.getSingleBigDecimalPOJOClass().getNum());
+
+            System.out.println("Original value = " + listBigDecimalPOJOClass.getNums() + ", Decode value = " + newPojo.getListBigDecimalPOJOClass().getNums());
+            Assert.assertEquals(listBigDecimalPOJOClass.getNums(), newPojo.getListBigDecimalPOJOClass().getNums());
+
+            System.out.println("Original value = " + mapDecimalPOJOClass.getDecimalMap() + ", Decode value = " + newPojo.getMapDecimalPOJOClass().getDecimalMap());
+            Assert.assertEquals(mapDecimalPOJOClass.getDecimalMap(), newPojo.getMapDecimalPOJOClass().getDecimalMap());
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }
