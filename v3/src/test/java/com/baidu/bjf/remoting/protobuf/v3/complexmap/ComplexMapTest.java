@@ -122,7 +122,7 @@ public class ComplexMapTest {
      * Test encode decode.
      * 不支持 MAP中嵌套List
      */
-    @Test
+    @Test(expected = NullPointerException.class)
     public void testMapEncodeDecode() {
 
         Map<Long, List<String>> listMap = new HashMap<>();
