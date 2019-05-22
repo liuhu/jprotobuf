@@ -71,6 +71,41 @@ public class DateTypeClassTest {
         }
     }
 
+    public static class InternalDatePOJOClass {
+        @Protobuf(fieldType = FieldType.OBJECT, order = 1, required = true)
+        private SingleDatePOJOClass singleDatePOJOClass;
+
+        @Protobuf(fieldType = FieldType.OBJECT, order = 2, required = true)
+        private ListDatePOJOClass listDatePOJOClass;
+
+        @Protobuf(fieldType = FieldType.OBJECT, order = 3, required = true)
+        private MapDatePOJOClass mapDatePOJOClass;
+
+        public SingleDatePOJOClass getSingleDatePOJOClass() {
+            return singleDatePOJOClass;
+        }
+
+        public void setSingleDatePOJOClass(SingleDatePOJOClass singleDatePOJOClass) {
+            this.singleDatePOJOClass = singleDatePOJOClass;
+        }
+
+        public ListDatePOJOClass getListDatePOJOClass() {
+            return listDatePOJOClass;
+        }
+
+        public void setListDatePOJOClass(ListDatePOJOClass listDatePOJOClass) {
+            this.listDatePOJOClass = listDatePOJOClass;
+        }
+
+        public MapDatePOJOClass getMapDatePOJOClass() {
+            return mapDatePOJOClass;
+        }
+
+        public void setMapDatePOJOClass(MapDatePOJOClass mapDatePOJOClass) {
+            this.mapDatePOJOClass = mapDatePOJOClass;
+        }
+    }
+
     /**
      * Test encode decode.
      */
@@ -151,7 +186,7 @@ public class DateTypeClassTest {
         pojo.setDateMap(dateMap);
 
 
-        Codec<MapDatePOJOClass> codec = ProtobufProxy.create(MapDatePOJOClass.class, true);
+        Codec<MapDatePOJOClass> codec = ProtobufProxy.create(MapDatePOJOClass.class, false);
         try {
             byte[] b = codec.encode(pojo);
             MapDatePOJOClass newPojo = codec.decode(b);
@@ -163,6 +198,48 @@ public class DateTypeClassTest {
                 System.out.println("Original value = " + v + ", Decode value = " + newPojo.getDateMap().get(k));
                 Assert.assertEquals(v, newPojo.getDateMap().get(k));
             });
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testInternalEncodeDecode() {
+        Date date1 = new Date();
+        Date date2 = new Date(1295668192000L);
+
+        SingleDatePOJOClass singleDatePOJOClass = new SingleDatePOJOClass();
+        singleDatePOJOClass.setDate(date1);
+
+        ListDatePOJOClass listDatePOJOClass = new ListDatePOJOClass();
+        listDatePOJOClass.setDates(Arrays.asList(date1, date2));
+
+        MapDatePOJOClass mapDatePOJOClass = new MapDatePOJOClass();
+        Map<Long, Date> dateMap = new HashMap<>();
+        dateMap.put(0L, date1);
+        dateMap.put(1L, date2);
+        mapDatePOJOClass.setDateMap(dateMap);
+
+        InternalDatePOJOClass internalDatePOJOClass = new InternalDatePOJOClass();
+        internalDatePOJOClass.setSingleDatePOJOClass(singleDatePOJOClass);
+        internalDatePOJOClass.setListDatePOJOClass(listDatePOJOClass);
+        internalDatePOJOClass.setMapDatePOJOClass(mapDatePOJOClass);
+
+        Codec<InternalDatePOJOClass> codec = ProtobufProxy.create(InternalDatePOJOClass.class, false);
+
+        try {
+            byte[] b = codec.encode(internalDatePOJOClass);
+            InternalDatePOJOClass newPojo = codec.decode(b);
+            System.out.println("Original value = " + singleDatePOJOClass.getDate() + ", Decode value = " + newPojo.getSingleDatePOJOClass().getDate());
+            Assert.assertEquals(singleDatePOJOClass.getDate(), newPojo.getSingleDatePOJOClass().getDate());
+
+            System.out.println("Original value = " + listDatePOJOClass.getDates() + ", Decode value = " + newPojo.getListDatePOJOClass().getDates());
+            Assert.assertEquals(listDatePOJOClass.getDates(), newPojo.getListDatePOJOClass().getDates());
+
+            System.out.println("Original value = " + mapDatePOJOClass.getDateMap() + ", Decode value = " + newPojo.getMapDatePOJOClass().getDateMap());
+            Assert.assertEquals(mapDatePOJOClass.getDateMap(), newPojo.getMapDatePOJOClass().getDateMap());
+
 
         } catch (IOException e) {
             e.printStackTrace();
