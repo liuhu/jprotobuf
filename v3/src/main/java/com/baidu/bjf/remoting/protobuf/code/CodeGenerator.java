@@ -265,6 +265,7 @@ public class CodeGenerator implements ICodeGenerator {
         code.append("import java.lang.reflect.*").append(JAVA_LINE_BREAK);
         code.append("import com.baidu.bjf.remoting.protobuf.*").append(JAVA_LINE_BREAK);
         code.append("import java.util.*").append(JAVA_LINE_BREAK);
+        code.append("import java.math.BigDecimal").append(JAVA_LINE_BREAK);
 
         if (!StringUtils.isEmpty(getPackage())) {
             code.append("import ").append(ClassHelper.getInternalName(cls.getCanonicalName())).append(JAVA_LINE_BREAK);

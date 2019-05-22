@@ -10,7 +10,11 @@ package com.baidu.bjf.remoting.protobuf.v3.complexmap;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import com.baidu.bjf.remoting.protobuf.FieldType;
+import com.baidu.bjf.remoting.protobuf.annotation.Protobuf;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -97,4 +101,45 @@ public class ComplexMapTest {
                 person.getPhoneNumberObjectValueMap().get("key1").getNumber());
     }
 
+    /**
+     * Map 结构
+     */
+    public static class MapListPOJOClass {
+
+        @Protobuf(fieldType = FieldType.MAP, order = 1, required = true)
+        private Map<Long, List<String>> listMap;
+
+        public Map<Long, List<String>> getListMap() {
+            return listMap;
+        }
+
+        public void setListMap(Map<Long, List<String>> listMap) {
+            this.listMap = listMap;
+        }
+    }
+
+    /**
+     * Test encode decode.
+     * 不支持 MAP中嵌套List
+     */
+    @Test(expected = NullPointerException.class)
+    public void testMapEncodeDecode() {
+
+        Map<Long, List<String>> listMap = new HashMap<>();
+        listMap.put(1L, Arrays.asList("1", "11"));
+
+        MapListPOJOClass pojo = new MapListPOJOClass();
+        pojo.setListMap(listMap);
+
+
+        Codec<MapListPOJOClass> codec = ProtobufProxy.create(MapListPOJOClass.class);
+        try {
+            byte[] b = codec.encode(pojo);
+            MapListPOJOClass newPojo = codec.decode(b);
+            System.out.println("Original listMap = " + listMap + ", Decode listMap = " + newPojo.getListMap());
+            Assert.assertEquals(listMap, newPojo.getListMap());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

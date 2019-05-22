@@ -18,20 +18,10 @@ package com.baidu.bjf.remoting.protobuf.code;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.math.BigDecimal;
+import java.util.*;
 
-import com.baidu.bjf.remoting.protobuf.Codec;
-import com.baidu.bjf.remoting.protobuf.EnumHandler;
-import com.baidu.bjf.remoting.protobuf.EnumReadable;
-import com.baidu.bjf.remoting.protobuf.FieldType;
-import com.baidu.bjf.remoting.protobuf.ProtobufIDLGenerator;
-import com.baidu.bjf.remoting.protobuf.ProtobufIDLProxy;
-import com.baidu.bjf.remoting.protobuf.ProtobufProxy;
+import com.baidu.bjf.remoting.protobuf.*;
 import com.baidu.bjf.remoting.protobuf.descriptor.DescriptorProtoPOJO;
 import com.baidu.bjf.remoting.protobuf.descriptor.EnumDescriptorProtoPOJO;
 import com.baidu.bjf.remoting.protobuf.descriptor.EnumOptionsPOJO;
@@ -325,7 +315,12 @@ public class CodedConstant {
                 } else {
                     defaultValueValue = "0";
                 }
-
+            } else if (BigDecimal.class.isAssignableFrom(field.getGenericeValueType())) {
+                valueClass = WIREFORMAT_CLSNAME + "." + FieldType.BIG_DECIMAL.getType().toUpperCase();
+                defaultValueValue = FieldType.BIG_DECIMAL.getDefaultValue();
+            } else if (Date.class.isAssignableFrom(field.getGenericeValueType())) {
+                valueClass = WIREFORMAT_CLSNAME + "." + FieldType.DATE.getType().toUpperCase();
+                defaultValueValue = FieldType.DATE.getDefaultValue();
             } else {
                 valueClass = WIREFORMAT_CLSNAME + ".MESSAGE";
                 // check constructor
@@ -474,6 +469,10 @@ public class CodedConstant {
         if (handler != null) {
             V value1 = handler.handle((int) value);
             map.put(values.getKey(), value1);
+        } else if (defalutValue instanceof BigDecimal) {
+            map.put(values.getKey(), (V) new BigDecimal((String) values.getValue()));
+        } else if (defalutValue instanceof Date) {
+            map.put(values.getKey(), (V) new Date((Long) values.getValue()));
         } else {
             map.put(values.getKey(), values.getValue());
         }
@@ -587,7 +586,11 @@ public class CodedConstant {
             size = CodedOutputStream.computeInt32SizeNoTag(Integer.valueOf(o.toString()));
         } else if (type == FieldType.FIXED64 || type == FieldType.INT64 || type == FieldType.SFIXED64
                 || type == FieldType.SINT64 || type == FieldType.UINT64) {
-            size = CodedOutputStream.computeInt64SizeNoTag(Long.valueOf(o.toString()));
+            if (o instanceof Date) {
+                size = CodedOutputStream.computeInt64SizeNoTag(Long.valueOf(((Date) o).getTime()));
+            } else {
+                size = CodedOutputStream.computeInt64SizeNoTag(Long.valueOf(o.toString()));
+            }
         } else if (type == FieldType.FLOAT) {
             size = CodedOutputStream.computeFloatSizeNoTag(Float.valueOf(o.toString()));
         } else if (type == FieldType.ENUM) {
@@ -808,10 +811,16 @@ public class CodedConstant {
                 out.writeInt32NoTag((Integer) o);
             }
         } else if (type == FieldType.INT64) {
-            if (withTag) {
-                out.writeInt64(order, (Long) o);
+            Long value = null;
+            if (o instanceof Date) {
+                value =  ((Date) o).getTime();
             } else {
-                out.writeInt64NoTag((Long) o);
+                value = (Long) o;
+            }
+            if (withTag) {
+                out.writeInt64(order, value);
+            } else {
+                out.writeInt64NoTag(value);
             }
         } else if (type == FieldType.SFIXED32) {
             if (withTag) {
@@ -1091,6 +1100,34 @@ public class CodedConstant {
     }
 
     /**
+     * 获取BigDecimal
+     * @param value
+     * @return
+     */
+    public static BigDecimal getBigDecimal(String value) {
+        if (StringUtils.isEmpty(value)) {
+            return null;
+        }
+        try {
+            return new BigDecimal(value);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    /**
+     * 获取 Date
+     * @param value
+     * @return
+     */
+    public static Date getDate(Long value) {
+        if (null == value) {
+            return null;
+        }
+        return new Date(value);
+    }
+
+    /**
      * Read a field of any primitive type for immutable messages from a CodedInputStream. Enums, groups, and embedded
      * messages are not handled by this method.
      *
@@ -1209,7 +1246,11 @@ public class CodedConstant {
                 output.writeFloatNoTag((Float) value);
                 break;
             case INT64:
-                output.writeInt64NoTag((Long) value);
+                if (value instanceof Date) {
+                    output.writeInt64NoTag(((Date) value).getTime());
+                } else {
+                    output.writeInt64NoTag((Long) value);
+                }
                 break;
             case UINT64:
                 output.writeUInt64NoTag((Long) value);
@@ -1227,7 +1268,11 @@ public class CodedConstant {
                 output.writeBoolNoTag((Boolean) value);
                 break;
             case STRING:
-                output.writeStringNoTag((String) value);
+                if (value instanceof BigDecimal) {
+                    output.writeStringNoTag((value.toString()));
+                } else {
+                    output.writeStringNoTag((String) value);
+                }
                 break;
             // group not support yet
             // case GROUP : output.writeGroupNoTag ((MessageLite) value); break;
@@ -1302,7 +1347,11 @@ public class CodedConstant {
             case FLOAT:
                 return CodedOutputStream.computeFloatSizeNoTag((Float) value);
             case INT64:
-                return CodedOutputStream.computeInt64SizeNoTag((Long) value);
+                if (value instanceof Date) {
+                    return CodedOutputStream.computeInt64SizeNoTag(((Date) value).getTime());
+                } else {
+                    return CodedOutputStream.computeInt64SizeNoTag((Long) value);
+                }
             case UINT64:
                 return CodedOutputStream.computeUInt64SizeNoTag((Long) value);
             case INT32:
@@ -1314,7 +1363,11 @@ public class CodedConstant {
             case BOOL:
                 return CodedOutputStream.computeBoolSizeNoTag((Boolean) value);
             case STRING:
-                return CodedOutputStream.computeStringSizeNoTag((String) value);
+                if (value instanceof BigDecimal) {
+                    return CodedOutputStream.computeStringSizeNoTag(value.toString());
+                } else {
+                    return CodedOutputStream.computeStringSizeNoTag((String) value);
+                }
             case GROUP:
                 return CodedOutputStream.computeGroupSizeNoTag((MessageLite) value);
             case BYTES:
