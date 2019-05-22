@@ -10,7 +10,9 @@ import org.junit.Test;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @description:
@@ -53,6 +55,23 @@ public class BigDecimalTypeClassTest {
 
         public void setNums(List<BigDecimal> nums) {
             this.nums = nums;
+        }
+    }
+
+    /**
+     * Map 结构
+     */
+    public static class MapDecimalPOJOClass {
+
+        @Protobuf(fieldType = FieldType.MAP, order = 1, required = true)
+        private Map<Long, BigDecimal> decimalMap;
+
+        public Map<Long, BigDecimal> getDecimalMap() {
+            return decimalMap;
+        }
+
+        public void setDecimalMap(Map<Long, BigDecimal> decimalMap) {
+            this.decimalMap = decimalMap;
         }
     }
 
@@ -118,4 +137,31 @@ public class BigDecimalTypeClassTest {
         }
     }
 
+    @Test
+    public void testMapEncodeDecode() {
+
+        Map<Long, BigDecimal> decimalMap = new HashMap<>();
+        decimalMap.put(0L, new BigDecimal("0.1"));
+        decimalMap.put(1L, new BigDecimal("1.1"));
+
+        MapDecimalPOJOClass pojo = new MapDecimalPOJOClass();
+        pojo.setDecimalMap(decimalMap);
+
+
+        Codec<MapDecimalPOJOClass> codec = ProtobufProxy.create(MapDecimalPOJOClass.class, true);
+        try {
+            byte[] b = codec.encode(pojo);
+            MapDecimalPOJOClass newPojo = codec.decode(b);
+            System.out.println("Original decimalMap = " + decimalMap + ", Decode decimalMap = " + newPojo.getDecimalMap());
+            BigDecimal aa = newPojo.getDecimalMap().get(0L);
+            System.out.println(aa);
+            decimalMap.forEach((k, v) -> {
+                System.out.println("Original value = " + v + ", Decode value = " + newPojo.getDecimalMap().get(k));
+                Assert.assertEquals(v, newPojo.getDecimalMap().get(k));
+            });
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

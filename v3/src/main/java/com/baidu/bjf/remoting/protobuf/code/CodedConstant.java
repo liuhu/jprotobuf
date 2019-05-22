@@ -21,13 +21,7 @@ import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.util.*;
 
-import com.baidu.bjf.remoting.protobuf.Codec;
-import com.baidu.bjf.remoting.protobuf.EnumHandler;
-import com.baidu.bjf.remoting.protobuf.EnumReadable;
-import com.baidu.bjf.remoting.protobuf.FieldType;
-import com.baidu.bjf.remoting.protobuf.ProtobufIDLGenerator;
-import com.baidu.bjf.remoting.protobuf.ProtobufIDLProxy;
-import com.baidu.bjf.remoting.protobuf.ProtobufProxy;
+import com.baidu.bjf.remoting.protobuf.*;
 import com.baidu.bjf.remoting.protobuf.descriptor.DescriptorProtoPOJO;
 import com.baidu.bjf.remoting.protobuf.descriptor.EnumDescriptorProtoPOJO;
 import com.baidu.bjf.remoting.protobuf.descriptor.EnumOptionsPOJO;
@@ -321,7 +315,9 @@ public class CodedConstant {
                 } else {
                     defaultValueValue = "0";
                 }
-
+            } else if (BigDecimal.class.isAssignableFrom(field.getGenericeValueType())) {
+                valueClass = WIREFORMAT_CLSNAME + "." + FieldType.BIG_DECIMAL.getType().toUpperCase();
+                defaultValueValue = FieldType.BIG_DECIMAL.getDefaultValue();
             } else {
                 valueClass = WIREFORMAT_CLSNAME + ".MESSAGE";
                 // check constructor
@@ -470,6 +466,8 @@ public class CodedConstant {
         if (handler != null) {
             V value1 = handler.handle((int) value);
             map.put(values.getKey(), value1);
+        } else if (defalutValue instanceof BigDecimal) {
+            map.put(values.getKey(), (V) new BigDecimal((String) values.getValue()));
         } else {
             map.put(values.getKey(), values.getValue());
         }
@@ -1261,7 +1259,11 @@ public class CodedConstant {
                 output.writeBoolNoTag((Boolean) value);
                 break;
             case STRING:
-                output.writeStringNoTag((String) value);
+                if (value instanceof BigDecimal) {
+                    output.writeStringNoTag((value.toString()));
+                } else {
+                    output.writeStringNoTag((String) value);
+                }
                 break;
             // group not support yet
             // case GROUP : output.writeGroupNoTag ((MessageLite) value); break;
@@ -1348,7 +1350,11 @@ public class CodedConstant {
             case BOOL:
                 return CodedOutputStream.computeBoolSizeNoTag((Boolean) value);
             case STRING:
-                return CodedOutputStream.computeStringSizeNoTag((String) value);
+                if (value instanceof BigDecimal) {
+                    return CodedOutputStream.computeStringSizeNoTag(value.toString());
+                } else {
+                    return CodedOutputStream.computeStringSizeNoTag((String) value);
+                }
             case GROUP:
                 return CodedOutputStream.computeGroupSizeNoTag((MessageLite) value);
             case BYTES:
