@@ -318,6 +318,9 @@ public class CodedConstant {
             } else if (BigDecimal.class.isAssignableFrom(field.getGenericeValueType())) {
                 valueClass = WIREFORMAT_CLSNAME + "." + FieldType.BIG_DECIMAL.getType().toUpperCase();
                 defaultValueValue = FieldType.BIG_DECIMAL.getDefaultValue();
+            } else if (Date.class.isAssignableFrom(field.getGenericeValueType())) {
+                valueClass = WIREFORMAT_CLSNAME + "." + FieldType.DATE.getType().toUpperCase();
+                defaultValueValue = FieldType.DATE.getDefaultValue();
             } else {
                 valueClass = WIREFORMAT_CLSNAME + ".MESSAGE";
                 // check constructor
@@ -468,6 +471,8 @@ public class CodedConstant {
             map.put(values.getKey(), value1);
         } else if (defalutValue instanceof BigDecimal) {
             map.put(values.getKey(), (V) new BigDecimal((String) values.getValue()));
+        } else if (defalutValue instanceof Date) {
+            map.put(values.getKey(), (V) new Date((Long) values.getValue()));
         } else {
             map.put(values.getKey(), values.getValue());
         }
@@ -1241,7 +1246,11 @@ public class CodedConstant {
                 output.writeFloatNoTag((Float) value);
                 break;
             case INT64:
-                output.writeInt64NoTag((Long) value);
+                if (value instanceof Date) {
+                    output.writeInt64NoTag(((Date) value).getTime());
+                } else {
+                    output.writeInt64NoTag((Long) value);
+                }
                 break;
             case UINT64:
                 output.writeUInt64NoTag((Long) value);
@@ -1338,7 +1347,11 @@ public class CodedConstant {
             case FLOAT:
                 return CodedOutputStream.computeFloatSizeNoTag((Float) value);
             case INT64:
-                return CodedOutputStream.computeInt64SizeNoTag((Long) value);
+                if (value instanceof Date) {
+                    return CodedOutputStream.computeInt64SizeNoTag(((Date) value).getTime());
+                } else {
+                    return CodedOutputStream.computeInt64SizeNoTag((Long) value);
+                }
             case UINT64:
                 return CodedOutputStream.computeUInt64SizeNoTag((Long) value);
             case INT32:
