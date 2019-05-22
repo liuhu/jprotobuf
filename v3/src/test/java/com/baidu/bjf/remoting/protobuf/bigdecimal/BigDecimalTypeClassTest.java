@@ -131,6 +131,9 @@ public class BigDecimalTypeClassTest {
             byte[] b = codec.encode(pojo);
             ListBigDecimalPOJOClass newPojo = codec.decode(b);
             System.out.println("Original nums = " + nums + ", Decode nums = " + newPojo.getNums());
+            BigDecimal newNum1 = newPojo.getNums().get(0);
+            BigDecimal newNum2 = newPojo.getNums().get(1);
+            System.out.println("num1 = " + newNum1 + " , num2 = " + newNum2);
             Assert.assertEquals(nums, newPojo.getNums());
         } catch (IOException e) {
             e.printStackTrace();
@@ -141,8 +144,8 @@ public class BigDecimalTypeClassTest {
     public void testMapEncodeDecode() {
 
         Map<Long, BigDecimal> decimalMap = new HashMap<>();
-        decimalMap.put(0L, new BigDecimal("0.1"));
-        decimalMap.put(1L, new BigDecimal("1.1"));
+        decimalMap.put(0L, new BigDecimal("0.1823478196234987269384"));
+        decimalMap.put(1L, new BigDecimal("1234234234.1"));
 
         MapDecimalPOJOClass pojo = new MapDecimalPOJOClass();
         pojo.setDecimalMap(decimalMap);
