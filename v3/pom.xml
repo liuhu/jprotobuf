@@ -10,7 +10,7 @@
 		<version>7</version>
 	</parent>
 
-	<groupId>com.baidu</groupId>
+	<groupId>com.acloudchina</groupId>
 	<artifactId>jprotobuf</artifactId>
 	<version>2.2.11</version>
 
